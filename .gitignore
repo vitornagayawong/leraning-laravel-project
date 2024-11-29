@@ -1,7 +1,11 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 HEAD
 >>>>>>> b2645fc (First commit)
+=======
+HEAD
+>>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
 /vendor/
 node_modules/
 npm-debug.log
@@ -26,7 +30,10 @@ Homestead.json
 /.vagrant
 .phpunit.result.cache
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
 
 /node_modules
 /public/hot
@@ -42,4 +49,7 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 31a18a3 (Primeiro commit)
+<<<<<<< HEAD
 >>>>>>> b2645fc (First commit)
+=======
+>>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
