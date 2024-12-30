@@ -28,7 +28,7 @@ class Pedido extends Model
             'required' => 'O :attribute é obrigatório!',
             'cliente_id.exists' => 'Id do cliente não encotrado!',
             'data.date' => 'Este campo deve ser do tipo data!',
-            'data.date_format' => 'Este campo deve estar no formato dia-mês-ano!',
+            'data.date_format' => 'Este campo deve estar no formato ano-mês-dia!',
             'data.after_or_equal' => 'A data deve ser igual ou depois de 26/11/2024!',
             'data.before_or_equal' => 'A data deve ser igual ou antes de 31/12/2024!',
             'valor_total.numeric' => 'O valor total do pedido deve ser do tipo numérico!',

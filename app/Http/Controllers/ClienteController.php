@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use App\Repositories\ClienteRepository;
+use Exception;
+use Facade\FlareClient\Http\Response;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
@@ -18,11 +20,13 @@ class ClienteController extends Controller
     public function index(Request $request)
     {
         //CRIANDO O REPOSITORY
+        try {
 
-
+        
+        
         $clienteRepository = new ClienteRepository($this->cliente);
 
-        if($request->has('atributos_conta')) {
+        if ($request->has('atributos_conta')) {
             $atributos_conta = 'contaBancaria:cliente_id,' . $request->atributos_conta;
             //dd($atributos_conta);
             //dd($atributos_conta);
@@ -36,7 +40,7 @@ class ClienteController extends Controller
 
 
 
-        if($request->has('atributos_pedido')) {
+        if ($request->has('atributos_pedido')) {
             $atributos_pedido = 'pedidos:cliente_id,' . $request->atributos_pedido;
             //dd($atributos_conta);
             //pega só os atributos da request
@@ -49,7 +53,7 @@ class ClienteController extends Controller
         }
 
 
-        if($request->has('filtro')) {
+        if ($request->has('filtro')) {
             $clienteRepository->filtro($request->filtro);
         }
 
@@ -59,6 +63,12 @@ class ClienteController extends Controller
         }
 
         return response()->json($clienteRepository->getResultado(), 200);
+        
+    }catch(Exception $e){
+        return response()->json([ 'Error' => $e->getMessage() ], 500);
+        
+    }
+
 
         //================================================================================
 
@@ -136,9 +146,14 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate($this->cliente->regras(), $this->cliente->feedbacks());
-        $this->cliente->create($request->all());
-        return 'Cliente cadastrado com sucesso!';
+        //dd('oi');
+        try {
+            $request->validate($this->cliente->regras(), $this->cliente->feedbacks());
+            $this->cliente->create($request->all());
+            return response()->json('cliente cadastrado com sucesso!');
+        } catch (Exception $e) {
+            return response()->json($e->getMessage(), 500);
+        }
     }
 
 
@@ -165,55 +180,63 @@ class ClienteController extends Controller
 
     public function update(Request $request, $id)
     {
-        $cliente = $this->cliente->find($id);
-        //dd($cliente);
+        try {
+            $cliente = $this->cliente->find($id);
+            //dd($cliente);
 
-        if ($cliente === null) {
-            return response()->json(['msg' => 'Cliente não encontrado!'], 404);
-        }
-
-        //dd($request);
-
-        if ($request->method() == 'PATCH') {
-
-            $regrasDinamicas = array();
-
-            //$teste = '';
-
-            foreach ($cliente->regras() as $input => $regra) {
-                if (array_key_exists($input, $request->all())) {
-                    //$teste .= 'Input: ' . $input . ' | Regra: ' . $regra . '<br>';
-                    $regrasDinamicas[$input] = $regra;
-                    //dump($regrasDinamicas);
-                }
+            if ($cliente === null) {
+                return response()->json(['msg' => 'Cliente não encontrado!'], 404);
             }
 
-            //return $teste;
-            $request->validate($regrasDinamicas, $this->cliente->feedbacks());
-        } else {
-            $request->validate($this->cliente->regras(), $this->cliente->feedbacks());
+            //dd($request);
+
+            if ($request->method() == 'PATCH') {
+
+                $regrasDinamicas = array();
+
+                //$teste = '';
+
+                foreach ($cliente->regras() as $input => $regra) {
+                    if (array_key_exists($input, $request->all())) {
+                        //$teste .= 'Input: ' . $input . ' | Regra: ' . $regra . '<br>';
+                        $regrasDinamicas[$input] = $regra;
+                        //dump($regrasDinamicas);
+                    }
+                }
+
+                //return $teste;
+                $request->validate($regrasDinamicas, $this->cliente->feedbacks());
+            } else {
+                $request->validate($this->cliente->regras(), $this->cliente->feedbacks());
+            }
+
+            //dd($request);
+
+            //PRIMEIRA MANEIRA DE PERSISTIR OS DADOS
+            //$cliente->update($request->all());
+
+            //SEGUNDA MANEIRA DE PERSISTIR OS DADOS
+            $cliente->fill($request->all());
+            $cliente->save();
+
+            return response()->json($cliente, 200);
+        } catch (Exception $e) {
+            return response()->json($e);
         }
-
-        //dd($request);
-
-        //PRIMEIRA MANEIRA DE PERSISTIR OS DADOS
-        //$cliente->update($request->all());
-
-        //SEGUNDA MANEIRA DE PERSISTIR OS DADOS
-        $cliente->fill($request->all());
-        $cliente->save();
-
-        return response()->json($cliente, 200);
     }
 
 
     public function destroy($id)
     {
-        $cliente = $this->cliente->find($id);
+        try {
+            $cliente = $this->cliente->find($id);
 
-        if ($cliente) {
-            $cliente->delete();
-            return response()->json($cliente, 200);
+            if ($cliente) {
+                $cliente->delete();
+                return response()->json($cliente, 200);
+            }
+        } catch (Exception $e) {
+            return response()->json($e);
         }
     }
 }

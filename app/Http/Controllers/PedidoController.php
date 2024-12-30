@@ -3,17 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
-<<<<<<< HEAD
 use App\Models\Produto;
 use App\Repositories\PedidoRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-=======
-use App\Repositories\PedidoRepository;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
->>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
 
 class PedidoController extends Controller
 {
@@ -29,11 +23,7 @@ class PedidoController extends Controller
 
         $pedidoRepository = new PedidoRepository($this->pedido);
 
-<<<<<<< HEAD
         if ($request->has('atributos_cliente')) {
-=======
-        if($request->has('atributos_cliente')) {
->>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
 
             $atributos_cliente = 'cliente:id,' . $request->atributos_cliente;
             //dd($atributos_cliente);
@@ -42,21 +32,13 @@ class PedidoController extends Controller
             $pedidoRepository->selectAtributosRegistrosRelacionados('cliente');
         }
 
-<<<<<<< HEAD
         if ($request->has('filtro')) {
-=======
-        if($request->has('filtro')) {
->>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
             $filtros = $request->filtro;
             //dd($atributos_cliente);
             $pedidoRepository->filtro($filtros);
         }
 
-<<<<<<< HEAD
         if ($request->has('atributos_pedido')) {
-=======
-        if($request->has('atributos_pedido')) {
->>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
             $atributos_pedido = $request->atributos_pedido;
             $pedidoRepository->selectAtributos($atributos_pedido);
         }
@@ -97,99 +79,6 @@ class PedidoController extends Controller
 
     public function store(Request $request)
     {
-<<<<<<< HEAD
-
-        try {
-            /*
-
-        Correção (chatGpt)
-
-        Você provavelmente quer montar um array onde as chaves sejam os IDs dos produtos e os valores sejam algo relacionado aos produtos (ou simplesmente os IDs novamente). Para isso, corrija o código assim:
-
-        $produtosIds = [];
-
-        foreach ($request->produtos as $produto) {
-            // Certifique-se de acessar 'produto_id' corretamente
-            $produtosIds[] = $produto['produto_id'];
-        }
-
-        Explicação:
-
-        Substituí $produtosIds[$produto] por $produtosIds[].
-        Aqui, estamos simplesmente adicionando o produto_id como valor no array $produtosIds.
-        Removemos o uso do índice $produto como chave, que era inválido.
-        Agora, o array $produtosIds conterá apenas os IDs dos produtos.
-
-        */
-
-
-            $valorTotal = floatval(0);
-
-            $produtosIds = [];
-            $produtosEstoque = [];
-
-            foreach ($request->produtos as $produto) {
-                $produtosIds[] = $produto['produto_id'];
-            }
-
-            foreach ($produtosIds as $produtoId) {
-                $produto = new Produto();
-                $valorTotal += $produto->find($produtoId)->preco;
-                $produtosEstoque[] = $produto->find($produtoId)->estoque;
-            }
-
-            try {
-                foreach ($produtosEstoque as $produtoEstoque) {
-                    if ($produtoEstoque->estoque <= 0) {
-                        return response()->json(["error" => 'estoque insuficiente'], 500);
-                    }
-                }
-            } catch (\Exception $e) {
-                return response()->json(["error" => $e->getMessage()], 500);
-            }
-
-            //dd($valorTotal);
-
-            //dd($produtosIds);
-
-            $dadosRequisitados = $request->all();
-
-            //dd($dadosRequisitados);
-
-            if ($request->method() === 'PATCH') {
-
-                $regrasDinamicas = array();
-
-                foreach ($this->pedido->regras() as $key => $value) {
-
-                    if (array_key_exists($key, $dadosRequisitados)) {
-
-                        $regrasDinamicas[$key] = $value;
-                    }
-                }
-
-                $request->validate($regrasDinamicas, $this->pedido->feedbacks());
-            } else {
-                $request->validate($this->pedido->regras(), $this->pedido->feedbacks());
-            }
-
-            if (isset($dadosRequisitados['data'])) {
-                $dadosRequisitados['data'] = Carbon::parse($dadosRequisitados['data'])->format('Y-m-d'); // Formato ISO
-            }
-
-            $dadosRequisitados['valor_total'] = $valorTotal;
-
-
-            DB::beginTransaction();
-
-            //
-
-            $pedido = $this->pedido->create($dadosRequisitados); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro
-
-
-            //OUTRA MANEIRA DE FAZER
-            /*
-=======
         $dadosRequisitados = $request->all();
 
         $data = $request->data;
@@ -220,23 +109,12 @@ class PedidoController extends Controller
 
         //OUTRA MANEIRA DE FAZER
         /*
->>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
         $pedido = new Pedido();
         $pedido->fill($dadosRequisitados); // Preenche os campos com o array recebido.
         $pedido->save(); // Salva no banco de dados.
         */
 
-<<<<<<< HEAD
-            DB::commit();
-
-            return response()->json(['msg' => 'Pedido salvo com sucesso', 'Dados do pedido' => $pedido, 'Data do pedido' => Carbon::parse($dadosRequisitados['data'])->format('d-m-Y'), 'Valor Total' => $dadosRequisitados['valor_total']], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(["error" => $e->getMessage()], 500);
-        }
-=======
         return response()->json($pedido, 201);
->>>>>>> b2645fc7a573ce3f35f93a8a85a86744f999a4e2
     }
 
 
