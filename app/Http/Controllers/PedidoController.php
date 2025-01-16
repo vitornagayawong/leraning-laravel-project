@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
+use App\Models\PedidoProduto;
 use App\Models\Produto;
 use App\Repositories\PedidoRepository;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Payload;
 
 class PedidoController extends Controller
 {
@@ -79,42 +82,90 @@ class PedidoController extends Controller
 
     public function store(Request $request)
     {
-        $dadosRequisitados = $request->all();
+        DB::beginTransaction();
+        try {
+            $dadosRequisitados = $request->all();
+            //dd('aa');
+            //dd($request->cliente_id);
+            //dd($dadosRequisitados['produtos'][1]['quantidade']);
+            //dd($dadosRequisitados['produtos']);
+            //dd($dadosRequisitados);
 
-        $data = $request->data;
-        //dump($request->data);
-        $dataFormatada = Carbon::parse($data)->format('d/m/Y');
-        $this->pedido->data = $dataFormatada;
-        //dump($this->pedido->data);
-        //dd($data);
-        //dd($dadosRequisitados);
-        if ($request->method() === 'PATCH') {
+            //$data = $request->data;
+            //dump($request->data);
+            //$dataFormatada = Carbon::parse($data)->format('d/m/Y');
 
-            $regrasDinamicas = array();
-
-            foreach ($this->pedido->regras() as $key => $value) {
-                if (array_key_exists($key, $dadosRequisitados)) {
-                    $regrasDinamicas[$key] = $value;
-                    dd($regrasDinamicas);
+            //dd($dataFormatada);
+            //$this->pedido->data = $dataFormatada;
+            //dump($this->pedido->data);
+            //dd($data);
+            //dd($dadosRequisitados);
+            if ($request->method() === 'PATCH') {
+                
+                $regrasDinamicas = array();
+                
+                foreach ($this->pedido->regras() as $key => $value) {
+                    if (array_key_exists($key, $dadosRequisitados)) {
+                        $regrasDinamicas[$key] = $value;
+                        dd($regrasDinamicas);
+                    }
                 }
+                $request->validate($regrasDinamicas, $this->pedido->feedbacks());
+            } else {
+
+                //dd('aa');
+                //dump($this->pedido->regras(), $this->pedido->feedbacks());
+                $request->validate($this->pedido->regras(), $this->pedido->feedbacks());
+                //dd('aa');
             }
 
-            $request->validate($regrasDinamicas, $this->pedido->feedbacks());
-        } else {
-            $request->validate($this->pedido->regras(), $this->pedido->feedbacks());
+            //dd($produtos);
+            
+            
+            $pedido = $this->pedido->fill($dadosRequisitados);
+            $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro
+            
+            
+            
+            $pedidoId = $pedido->id;
+            //dd($pedidoId);
+
+            $totalProdutos = count($dadosRequisitados['produtos']);
+            //dd($totalProdutos); //2 aqui!!!
+            //Sintaxe de array, Se $dadosRequisitados for um array, você precisa usar a notação de array para acessar o valor relacionado a "produtos".
+            for($i = 0; $i < $totalProdutos; $i++) {
+                $pedidoProduto = new PedidoProduto();
+                $pedidoProduto->produto_id = $dadosRequisitados['produtos'][$i]['id'];
+                $pedidoProduto->pedido_id = $pedidoId;
+                $pedidoProduto->quantidade_do_produto = $dadosRequisitados['produtos'][$i]['quantidade'];
+                $pedidoProduto->valor_do_produto = $dadosRequisitados['produtos'][$i]['preco'];
+                $pedidoProduto->valor_total = $dadosRequisitados['produtos'][$i]['quantidade'] * $dadosRequisitados['produtos'][$i]['preco'];
+                $pedidoProduto->desconto = 0;
+
+                //$payload = [$pedidoProduto->produto_id, $pedidoProduto->pedido_id, $pedidoProduto->quantidade_do_produto, $pedidoProduto->valor_do_produto, $pedidoProduto->valor_total];
+                //$pedidoProduto->fill($payload);
+                //dd($pedidoProduto);
+                $pedidoProduto->save();
+
+                
+                if (!$pedidoProduto->save()) {
+                    dd($pedidoProduto->errors()); 
+                }
+            }
+            //OUTRA MANEIRA DE FAZER
+            /*
+            $pedido = new Pedido();
+            $pedido->fill($dadosRequisitados); // Preenche os campos com o array recebido.
+            $pedido->save(); // Salva no banco de dados.
+            */
+
+            DB::commit();
+
+            return response()->json($pedido, 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json($e);
         }
-
-        $pedido = $this->pedido->create($dadosRequisitados); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro
-
-
-        //OUTRA MANEIRA DE FAZER
-        /*
-        $pedido = new Pedido();
-        $pedido->fill($dadosRequisitados); // Preenche os campos com o array recebido.
-        $pedido->save(); // Salva no banco de dados.
-        */
-
-        return response()->json($pedido, 201);
     }
 
 
@@ -129,7 +180,7 @@ class PedidoController extends Controller
         }
         //dd($pedido);
 
-        return response()->json(['msg' => 'Pedido encontrado com sucesso', $pedido], 200);
+        return response()->json(['msg' => 'Pedido encontrado com sucesso'], 200);
     }
 
     /*

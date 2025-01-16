@@ -26,7 +26,6 @@ abstract class AbstractRepository {
                 $this->model = $this->model->where($condicaoSeparadaDeFato[0], $condicaoSeparadaDeFato[1], $condicaoSeparadaDeFato[2]);
 
             }
-
             //dd($condicao);
 
             //Eu estava usando "with" aqui, na verdade é "where"!
