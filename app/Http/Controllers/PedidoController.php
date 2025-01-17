@@ -23,7 +23,6 @@ class PedidoController extends Controller
 
     public function index(Request $request)
     {
-
         $pedidoRepository = new PedidoRepository($this->pedido);
 
         if ($request->has('atributos_cliente')) {
@@ -85,7 +84,7 @@ class PedidoController extends Controller
         DB::beginTransaction();
         try {
             $dadosRequisitados = $request->all();
-            //dd('aa');
+    
             //dd($request->cliente_id);
             //dd($dadosRequisitados['produtos'][1]['quantidade']);
             //dd($dadosRequisitados['produtos']);
@@ -100,6 +99,7 @@ class PedidoController extends Controller
             //dump($this->pedido->data);
             //dd($data);
             //dd($dadosRequisitados);
+
             if ($request->method() === 'PATCH') {
                 
                 $regrasDinamicas = array();
@@ -107,24 +107,17 @@ class PedidoController extends Controller
                 foreach ($this->pedido->regras() as $key => $value) {
                     if (array_key_exists($key, $dadosRequisitados)) {
                         $regrasDinamicas[$key] = $value;
-                        dd($regrasDinamicas);
+                        //dd($regrasDinamicas);
                     }
                 }
                 $request->validate($regrasDinamicas, $this->pedido->feedbacks());
-            } else {
-
-                //dd('aa');
+            } else {                
                 //dump($this->pedido->regras(), $this->pedido->feedbacks());
-                $request->validate($this->pedido->regras(), $this->pedido->feedbacks());
-                //dd('aa');
-            }
-
-            //dd($produtos);
-            
+                $request->validate($this->pedido->regras(), $this->pedido->feedbacks());                
+            }            
             
             $pedido = $this->pedido->fill($dadosRequisitados);
-            $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro
-            
+            $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro        
             
             
             $pedidoId = $pedido->id;
@@ -145,13 +138,39 @@ class PedidoController extends Controller
                 //$payload = [$pedidoProduto->produto_id, $pedidoProduto->pedido_id, $pedidoProduto->quantidade_do_produto, $pedidoProduto->valor_do_produto, $pedidoProduto->valor_total];
                 //$pedidoProduto->fill($payload);
                 //dd($pedidoProduto);
+                //dd($dadosRequisitados['produtos']);
+
                 $pedidoProduto->save();
 
                 
                 if (!$pedidoProduto->save()) {
                     dd($pedidoProduto->errors()); 
                 }
+
+                //atualizando o estoque do banco de dados
+                $produtosDoBanco = Produto::find($pedidoProduto->produto_id);
+           
+
+                if($produtosDoBanco) {
+
+                    if($produtosDoBanco->estoque < $pedidoProduto->quantidade_do_produto) {
+                        DB::rollBack();
+                        return response()->json(['error' => 'Quantidade requisitada maior que a do estoque!']);
+                    }
+
+                    $produtosDoBanco->estoque -= $pedidoProduto->quantidade_do_produto;
+                    $produtosDoBanco->save();
+                }
             }
+
+            //dd($dadosRequisitados);            
+
+            //$produtos = Produto::all();
+            //$prod = Produto::find(1);
+            //dd($prod->getAttributes());
+
+            //dd($produtos);      
+
             //OUTRA MANEIRA DE FAZER
             /*
             $pedido = new Pedido();
