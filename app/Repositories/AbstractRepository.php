@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\Produto;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class AbstractRepository {
@@ -23,12 +24,24 @@ abstract class AbstractRepository {
             foreach($filtros as $key => $value) {
                 $condicaoSeparadaDeFato = explode(':', $value);
 
-                $this->model = $this->model->where($condicaoSeparadaDeFato[0], $condicaoSeparadaDeFato[1], $condicaoSeparadaDeFato[2]);
+                $this->model = $this->model->where(
+                    $condicaoSeparadaDeFato[0], 
+                    $condicaoSeparadaDeFato[1], 
+                    $condicaoSeparadaDeFato[2]
+                );
 
             }
             //dd($condicao);
-
             //Eu estava usando "with" aqui, na verdade é "where"!
+    }
+
+    public function filtroNomeProd($filtros) { //interligado com o front
+        $filtros = explode(':', $filtros);
+        //dd($filtros);
+        $filtroNome = explode(' ', $filtros[2]);
+        foreach($filtroNome as $value) {
+            $this->model = $this->model->where($filtros[0], $filtros[1], '%' . $value . '%');
+        }
     }
 
     public function selectAtributos($atributos) {
@@ -36,7 +49,7 @@ abstract class AbstractRepository {
     }
 
     public function getResultado() {
-        return $this->model->get();
+        return $this->model->paginate(2); //paginação dinâmica enviada para o front
     }
 
     //MINHAS FUNÇÕES PARA TESTE

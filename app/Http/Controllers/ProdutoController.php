@@ -33,6 +33,11 @@ class ProdutoController extends Controller
             $filtros = $request->filtro;
             $produtoRepository->filtro($filtros);
         }
+        
+        if($request->has('filtroNomeProd')) { //interligado com o front
+            $filtros = $request->filtroNomeProd;
+            $produtoRepository->filtroNomeProd($filtros);
+        }
 
         if($request->has('atributos_produto')) {
             $atributosProduto = $request->atributos_produto;
@@ -127,6 +132,5 @@ class ProdutoController extends Controller
         } else {
             return response()->json(['msg' => 'Não foi possível encontrar o produto!'], 404);
         }
-
     }
 }
