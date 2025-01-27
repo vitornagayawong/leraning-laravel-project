@@ -62,7 +62,7 @@ class ClienteController extends Controller
             $clienteRepository->selectAtributos($request->atributos_cliente);
         }
 
-        return response()->json($clienteRepository->getResultado(), 200);
+        return response()->json($clienteRepository->getNormal(), 200);
         
     }catch(Exception $e){
         return response()->json([ 'Error' => $e->getMessage() ], 500);

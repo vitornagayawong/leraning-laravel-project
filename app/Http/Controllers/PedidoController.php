@@ -48,7 +48,7 @@ class PedidoController extends Controller
         //chamando o relacionamento com produtos também
         $pedidoRepository->selectAtributosRegistrosRelacionados('produtos');
 
-        return response()->json($pedidoRepository->getResultado(), 200);
+        return response()->json($pedidoRepository->getPaginated(), 200);
 
         //=========================================================================
         //FAZENDO SEM REPOSITORY

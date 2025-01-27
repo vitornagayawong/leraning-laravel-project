@@ -29,7 +29,6 @@ abstract class AbstractRepository {
                     $condicaoSeparadaDeFato[1], 
                     $condicaoSeparadaDeFato[2]
                 );
-
             }
             //dd($condicao);
             //Eu estava usando "with" aqui, na verdade é "where"!
@@ -48,8 +47,12 @@ abstract class AbstractRepository {
         $this->model = $this->model->selectRaw($atributos);
     }
 
-    public function getResultado() {
-        return $this->model->paginate(2); //paginação dinâmica enviada para o front
+    public function getPaginated() {        
+        return $this->model->paginate(2); //paginação dinâmica enviada para o front  
+    }
+
+    public function getNormal() {
+        return $this->model->get();
     }
 
     //MINHAS FUNÇÕES PARA TESTE

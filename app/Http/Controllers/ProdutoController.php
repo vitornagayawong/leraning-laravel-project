@@ -44,7 +44,7 @@ class ProdutoController extends Controller
             $produtoRepository->selectAtributos($atributosProduto);
         }
 
-        return response()->json($produtoRepository->getResultado(), 200);
+        return response()->json($produtoRepository->getPaginated(), 200);
     }
 
     /*
