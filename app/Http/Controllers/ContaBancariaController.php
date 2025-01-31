@@ -43,7 +43,7 @@ class ContaBancariaController extends Controller
             $contaBancariaRepository->selectAtributos($request->atributos_conta);
         }
 
-        return response()->json($contaBancariaRepository->getResultado(), 200);
+        return response()->json($contaBancariaRepository->getNormal(), 200);
 
         /* //FORMA ANTIGA DE FAZER SEM O REPOSITORY
 

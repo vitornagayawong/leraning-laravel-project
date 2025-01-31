@@ -31,6 +31,7 @@ Route::middleware('jwt.auth')->group(function() {
     Route::apiResource('produtos', 'App\Http\Controllers\ProdutoController');
     Route::post('me', 'App\Http\Controllers\AuthController@me');
     Route::post('logout', 'App\Http\Controllers\AuthController@logout');
+    Route::apiResource('cupom-desconto', 'App\Http\Controllers\CupomDescontoController');
     
 });
 

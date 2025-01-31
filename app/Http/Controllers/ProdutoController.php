@@ -22,6 +22,8 @@ class ProdutoController extends Controller
 
         $produtoRepository = new ProdutoRepository($this->produto);
 
+        //dd($produtoRepository);
+
         if($request->has('atributos_pedidos')) {
             $atributosPedidos = $request->atributos_pedidos;
             $produtoRepository->selectAtributosRegistrosRelacionados($atributosPedidos);
@@ -43,6 +45,36 @@ class ProdutoController extends Controller
             $atributosProduto = $request->atributos_produto;
             $produtoRepository->selectAtributos($atributosProduto);
         }
+
+
+
+        /////////////////////////////////////////////////////////////////////////////////
+        //$produtos = Produto::all();
+        //dd($produtos);
+        // $produtosFiltrados = $produtos->filter(function($produto) {
+        //     return $produto->estoque > 0;
+        // });
+        
+        //dd($produtosFiltrados);
+
+        //$produtoRepository->moreThanZero($produtos);
+
+
+        $produtoRepository->moreThanZero();
+
+
+        // foreach($produtos as $key => $value) {
+        //     //dump($key);
+        //     //dump($value->estoque);
+        //     if($value->estoque <= 0) {
+        //         $productsThatHasQuantityMoreThanZero = 
+        //     }
+        // }
+
+        // $produtos->filter(function($produto) {
+        //     return $produto->quantidade > 0;
+        // });
+
 
         return response()->json($produtoRepository->getPaginated(), 200);
     }

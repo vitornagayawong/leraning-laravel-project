@@ -17,7 +17,7 @@ class Pedido extends Model
 
     public function regras() {
         return [
-            'cliente_id' => 'required|exists:clientes,id', //como o relacionamento é de 1 para N, então aqui não precisa do "unique"
+            'cliente_id' => 'required|exists:App\Models\Cliente,id', //como o relacionamento é de 1 para N, então aqui não precisa do "unique"
             'data' => 'date|date_format:Y-m-d|after_or_equal:2024-11-26|before_or_equal:2025-12-31',
             'valor_total' => 'required|numeric|min:0',
             'forma_pgt' => 'required'
@@ -26,14 +26,16 @@ class Pedido extends Model
 
     public function feedbacks() {
         return [
-            'required' => 'O :attribute é obrigatório!',
-            'cliente_id.exists' => 'Id do cliente não encotrado!',
+            'cliente_id.exists' => 'Id do cliente não encontrado!',
+            'cliente_id.required' => 'Id do cliente é obrigatório!',
             'data.date' => 'Este campo deve ser do tipo data!',
             'data.date_format' => 'Este campo deve estar no formato ano-mês-dia!',
             'data.after_or_equal' => 'A data deve ser igual ou depois de 26/11/2024!',
             'data.before_or_equal' => 'A data deve ser igual ou antes de 31/12/2025!',
             'valor_total.numeric' => 'O valor total do pedido deve ser do tipo numérico!',
             'valor_total.min' => 'O valor total do pedido deve ser no mínimo 0 reais',
+            'valor_total.required' => 'O valor total do pedido é obrigatório',
+            'forma_pgt' => 'A forma de pagamento é obrigatória!'
         ];
     }
 
@@ -43,5 +45,9 @@ class Pedido extends Model
 
     public function produtos() {
         return $this->belongsToMany(Produto::class, 'pedido_produtos', 'pedido_id', 'produto_id');
+    }
+
+    public function cupomDesconto() {
+        return $this->belongsTo('App\Models\CupomDesconto');
     }
 }

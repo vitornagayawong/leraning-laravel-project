@@ -10,7 +10,9 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Payload;
+use App\Http\Requests\PedidoRequest;
 
 class PedidoController extends Controller
 {
@@ -84,7 +86,6 @@ class PedidoController extends Controller
         DB::beginTransaction();
         try {
             $dadosRequisitados = $request->all();
-    
             //dd($request->cliente_id);
             //dd($dadosRequisitados['produtos'][1]['quantidade']);
             //dd($dadosRequisitados['produtos']);
@@ -112,10 +113,13 @@ class PedidoController extends Controller
                 }
                 $request->validate($regrasDinamicas, $this->pedido->feedbacks());
             } else {                
-                //dump($this->pedido->regras(), $this->pedido->feedbacks());
+                // dump($this->pedido->regras(), $this->pedido->feedbacks());
+                //$validator = Validator::make($request->all(),
+                //$this->pedido->regras());
+                //dd($validator->fails(), $validator->errors()->messages());
                 $request->validate($this->pedido->regras(), $this->pedido->feedbacks());                
             }            
-            
+                       
             $pedido = $this->pedido->fill($dadosRequisitados);
             $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro        
             
@@ -141,21 +145,27 @@ class PedidoController extends Controller
                 //dd($dadosRequisitados['produtos']);
 
                 $pedidoProduto->save();
-
                 
                 if (!$pedidoProduto->save()) {
                     dd($pedidoProduto->errors()); 
                 }
-
+                
                 //atualizando o estoque do banco de dados
-                $produtosDoBanco = Produto::find($pedidoProduto->produto_id);
-           
+                $produtosDoBanco = Produto::find($pedidoProduto->produto_id);           
 
                 if($produtosDoBanco) {
 
-                    if($produtosDoBanco->estoque < $pedidoProduto->quantidade_do_produto) {
+                    if($produtosDoBanco->estoque < $pedidoProduto->quantidade_do_produto && $produtosDoBanco->estoque == 0) {
                         DB::rollBack();
-                        return response()->json(['error' => 'Quantidade requisitada maior que a do estoque!']);
+                        return response()->json([$produtosDoBanco->nome .  ' está com estoque zerado!']);
+                    }
+
+                    //dd('aaaa');
+                    //dd($pedidoProduto);
+
+                    if($pedidoProduto->quantidade_do_produto > $produtosDoBanco->estoque  && $produtosDoBanco->estoque > 0) {
+                        DB::rollBack();
+                        return response()->json(['error' => 'Quantidade requisitada do(a) ' . $produtosDoBanco->nome .  ' maior que a do estoque!']);
                     }
 
                     $produtosDoBanco->estoque -= $pedidoProduto->quantidade_do_produto;

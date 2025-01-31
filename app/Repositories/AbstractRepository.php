@@ -47,8 +47,19 @@ abstract class AbstractRepository {
         $this->model = $this->model->selectRaw($atributos);
     }
 
+    public function moreThanZero() {        
+        // $this->model = $modelos->filter(function($item) {
+        // //////////////////////////////
+        //     return $item->estoque > 0;
+        // });
+        // //dd('aaquiiiiiii');
+        // //dd($this->model);
+
+        $this->model = $this->model->where('estoque', '>', 0);
+    }
+
     public function getPaginated() {        
-        return $this->model->paginate(2); //paginação dinâmica enviada para o front  
+        return $this->model->paginate(5); //paginação dinâmica enviada para o front  
     }
 
     public function getNormal() {

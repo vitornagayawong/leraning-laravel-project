@@ -19,7 +19,8 @@ class Produto extends Model
         return [
             'nome' => 'required|min:2|max:50',
             'descricao' => 'required|max:100',
-            'preco' => 'required|numeric|digits_between:1,4',
+            //'preco' => 'required|numeric|digits_between:1,4', //digits_digits_between não permiti que eu possa cadastrar produtos com casas decimais
+            'preco' => 'required|numeric|min:0.01',
             'peso' => 'required|numeric|between:0,50',
             'altura' => 'required|numeric',
             'estoque' => 'required|numeric'
