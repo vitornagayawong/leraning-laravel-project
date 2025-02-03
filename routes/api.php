@@ -24,7 +24,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::middleware('jwt.auth')->group(function() {
     Route::apiResource('clientes', 'App\Http\Controllers\ClienteController');
     //Route::get('account/{id}', [ContaBancariaController::class, 'show']);
-    Route::post('/user', 'App\Http\Controllers\UserController@store');
     Route::apiResource('conta-bancarias', 'App\Http\Controllers\ContaBancariaController');
     Route::apiResource('pedidos', 'App\Http\Controllers\PedidoController');
     Route::apiResource('pedido-produtos', 'App\Http\Controllers\PedidoProdutoController');
@@ -35,5 +34,6 @@ Route::middleware('jwt.auth')->group(function() {
     
 });
 
+Route::post('user', 'App\Http\Controllers\UserController@store');
 Route::post('login', 'App\Http\Controllers\AuthController@login');
 Route::post('refresh', 'App\Http\Controllers\AuthController@refresh');

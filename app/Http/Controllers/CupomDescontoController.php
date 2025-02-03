@@ -27,7 +27,7 @@ class CupomDescontoController extends Controller
             //dd($cupomDescontoRepository);
 
             DB::commit();
-            return response()->json(['Cupons encontrados' => $cupomDescontoRepository->getNormal()], 200);
+            return response()->json([$cupomDescontoRepository->getNormal()], 200);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['Error' => $e->getMessage()], 404);
@@ -89,9 +89,6 @@ class CupomDescontoController extends Controller
     {   
         DB::beginTransaction();
         try {
-            //dd($request->all());
-            //dump($this->cupomDesconto->regras());
-            //dump($this->cupomDesconto->feedbacks());
             $request->validate($this->cupomDesconto->regras(), $this->cupomDesconto->feedbacks());
             //dd('aquiiiiiiiiiiigfdgfdgfdgfdfdg');
             //dd('oi');
@@ -120,12 +117,7 @@ class CupomDescontoController extends Controller
     {
         DB::beginTransaction();
         try {
-            //dd($request->all());
-            // dd($this->cupomDesconto);
-            //dd('oi');
-            
             $cupomDesconto = $this->cupomDesconto->find($id);
-            //dd($cupomDesconto);
 
             if($cupomDesconto == null) {
                 return response()->json(['Error!' => 'Cupom não foi encontrado'], 404);
@@ -135,9 +127,7 @@ class CupomDescontoController extends Controller
                 $cupomDesconto->delete();
                 DB::commit();
                 return response()->json(['Cupom removido com sucesso!' => $cupomDesconto], 200);
-            }
-
-            
+            }            
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['Errorr' => $e->getMessage()], 404);

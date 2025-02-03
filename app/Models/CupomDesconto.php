@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 class CupomDesconto extends Model
 {
     use HasFactory;
@@ -35,5 +34,4 @@ class CupomDesconto extends Model
     public function pedido() {
         return $this->hasMany('App\Models\Pedido');
     }
-
 }
