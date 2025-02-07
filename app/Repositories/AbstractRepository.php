@@ -13,7 +13,7 @@ abstract class AbstractRepository {
     }
 
     public function selectAtributosRegistrosRelacionados($atributos) {
-        $this->model = $this->model->with($atributos); //atualizando sempre o estado do model
+        //$this->model = $this->model->with($atributos); //atualizando sempre o estado do model
     }
 
     public function filtro($filtros) {

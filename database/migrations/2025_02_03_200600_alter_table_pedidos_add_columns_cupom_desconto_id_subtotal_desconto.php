@@ -14,7 +14,7 @@ class AlterTablePedidosAddColumnsCupomDescontoIdSubtotalDesconto extends Migrati
     public function up()
     {
         Schema::table('pedidos', function(Blueprint $table) {
-            $table->unsignedInteger('cupom_desconto_id')->after('id');
+            $table->unsignedBigInteger('cupom_desconto_id')->after('id')->default(null)->nullable();
             $table->float('subtotal', 8, 2)->after('deleted_at');
             $table->float('desconto_porcetagem', 8, 2)->after('subtotal')->default(0);
             $table->foreign('cupom_desconto_id')->references('id')->on('cupom_desconto');

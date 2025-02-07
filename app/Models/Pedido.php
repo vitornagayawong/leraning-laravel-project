@@ -11,7 +11,7 @@ class Pedido extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $fillable = ['cliente_id', 'data', 'valor_total', 'forma_pgt'];
+    protected $fillable = ['cupom_desconto_id', 'cliente_id', 'data', 'subtotal', 'desconto_porcentagem', 'valor_total', 'forma_pgt'];
     protected $primaryKey = 'id';
     protected $table = 'pedidos';
 

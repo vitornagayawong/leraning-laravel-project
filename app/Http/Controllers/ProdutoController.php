@@ -46,8 +46,6 @@ class ProdutoController extends Controller
             $produtoRepository->selectAtributos($atributosProduto);
         }
 
-
-
         /////////////////////////////////////////////////////////////////////////////////
         //$produtos = Produto::all();
         //dd($produtos);
@@ -59,9 +57,7 @@ class ProdutoController extends Controller
 
         //$produtoRepository->moreThanZero($produtos);
 
-
         $produtoRepository->moreThanZero();
-
 
         // foreach($produtos as $key => $value) {
         //     //dump($key);
@@ -74,7 +70,6 @@ class ProdutoController extends Controller
         // $produtos->filter(function($produto) {
         //     return $produto->quantidade > 0;
         // });
-
 
         return response()->json($produtoRepository->getPaginated(), 200);
     }

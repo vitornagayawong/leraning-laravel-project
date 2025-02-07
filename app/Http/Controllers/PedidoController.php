@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Payload;
 use App\Http\Requests\PedidoRequest;
+use App\Mail\MensagemTesteMail;
+use App\Models\Cliente;
+use App\Models\User;
+use App\Notifications\notificaUser;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
+use Barryvdh\DomPDF\PDF;
+use Illuminate\Support\Facades\Mail;
+use PhpParser\Node\Stmt\Foreach_;
 
 class PedidoController extends Controller
 {
@@ -48,7 +56,7 @@ class PedidoController extends Controller
         }
 
         //chamando o relacionamento com produtos também
-        $pedidoRepository->selectAtributosRegistrosRelacionados('produtos');
+        //$pedidoRepository->selectAtributosRegistrosRelacionados('produtos');
 
         return response()->json($pedidoRepository->getPaginated(), 200);
 
@@ -86,14 +94,11 @@ class PedidoController extends Controller
         DB::beginTransaction();
         try {
             $dadosRequisitados = $request->all();
+            //dd($dadosRequisitados);
             //dd($request->cliente_id);
             //dd($dadosRequisitados['produtos'][1]['quantidade']);
             //dd($dadosRequisitados['produtos']);
             //dd($dadosRequisitados);
-
-            //$data = $request->data;
-            //dump($request->data);
-            //$dataFormatada = Carbon::parse($data)->format('d/m/Y');
 
             //dd($dataFormatada);
             //$this->pedido->data = $dataFormatada;
@@ -108,7 +113,6 @@ class PedidoController extends Controller
                 foreach ($this->pedido->regras() as $key => $value) {
                     if (array_key_exists($key, $dadosRequisitados)) {
                         $regrasDinamicas[$key] = $value;
-                        //dd($regrasDinamicas);
                     }
                 }
                 $request->validate($regrasDinamicas, $this->pedido->feedbacks());
@@ -121,30 +125,34 @@ class PedidoController extends Controller
             }            
                        
             $pedido = $this->pedido->fill($dadosRequisitados);
-            $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro        
-            
-            
+           // $pedido->cupom_desconto_id = $dadosRequisitados['upom_desconto_id'];
+            //dd($pedido);
+            $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro     
+            //dd($dadosRequisitados);
             $pedidoId = $pedido->id;
             //dd($pedidoId);
-
             $totalProdutos = count($dadosRequisitados['produtos']);
-            //dd($totalProdutos); //2 aqui!!!
+            
+            
+            $arrayDePedidos = [];
+
+
             //Sintaxe de array, Se $dadosRequisitados for um array, você precisa usar a notação de array para acessar o valor relacionado a "produtos".
             for($i = 0; $i < $totalProdutos; $i++) {
+                //dd($totalProdutos);
                 $pedidoProduto = new PedidoProduto();
                 $pedidoProduto->produto_id = $dadosRequisitados['produtos'][$i]['id'];
                 $pedidoProduto->pedido_id = $pedidoId;
+                $pedidoProduto->preco_unitario = $dadosRequisitados['produtos'][$i]['preco'];
                 $pedidoProduto->quantidade_do_produto = $dadosRequisitados['produtos'][$i]['quantidade'];
-                $pedidoProduto->valor_do_produto = $dadosRequisitados['produtos'][$i]['preco'];
-                $pedidoProduto->valor_total = $dadosRequisitados['produtos'][$i]['quantidade'] * $dadosRequisitados['produtos'][$i]['preco'];
-                $pedidoProduto->desconto = 0;
-
-                //$payload = [$pedidoProduto->produto_id, $pedidoProduto->pedido_id, $pedidoProduto->quantidade_do_produto, $pedidoProduto->valor_do_produto, $pedidoProduto->valor_total];
-                //$pedidoProduto->fill($payload);
-                //dd($pedidoProduto);
-                //dd($dadosRequisitados['produtos']);
+                $pedidoProduto->valor_do_produto = $dadosRequisitados['produtos'][$i]['preco'] * $pedidoProduto->quantidade_do_produto;
+                $pedidoProduto->desconto = (($dadosRequisitados['desconto_porcentagem'] / 100)  * $pedidoProduto->valor_do_produto);
+                $pedidoProduto->valor_total = $pedidoProduto->valor_do_produto - $pedidoProduto->desconto;
+                 
 
                 $pedidoProduto->save();
+
+                array_push($arrayDePedidos, $pedidoProduto);
                 
                 if (!$pedidoProduto->save()) {
                     dd($pedidoProduto->errors()); 
@@ -159,9 +167,6 @@ class PedidoController extends Controller
                         DB::rollBack();
                         return response()->json([$produtosDoBanco->nome .  ' está com estoque zerado!']);
                     }
-
-                    //dd('aaaa');
-                    //dd($pedidoProduto);
 
                     if($pedidoProduto->quantidade_do_produto > $produtosDoBanco->estoque  && $produtosDoBanco->estoque > 0) {
                         DB::rollBack();
@@ -187,6 +192,44 @@ class PedidoController extends Controller
             $pedido->fill($dadosRequisitados); // Preenche os campos com o array recebido.
             $pedido->save(); // Salva no banco de dados.
             */
+            //dd($dadosRequisitados['user']['name']);
+            
+            // if($dadosRequisitados['user']) {
+            //     $user = new User();
+            //     $user->name = $dadosRequisitados['user']['name'];
+            //     //dd($dadosRequisitados['user']->name);
+            //     //dd($user->name);
+            //     $user->email = $dadosRequisitados['user']['email'];
+            //     $user->notify(new notificaUser($user));
+            // }      
+            
+            //dd($arrayDePedidos);
+
+            if(auth()->user()) {
+                //$user = auth()->user();
+                
+                $usuario = $dadosRequisitados['user']['name'];
+                $dataHoraAtual = Carbon::now()->toDateTimeString();
+                
+                $valorTotalCompra = 0;
+
+                foreach($arrayDePedidos as $key => $value) {
+                    //dd($value);
+                    $valorTotalCompra += $value->valor_total; 
+                }
+                
+                //dd($valorTotalCompra);
+                //dd($dataHoraAtual);
+                //dd($user->name);
+                //  $user->email = $dadosRequisitados['user']['email'];
+                //dd($dadosRequisitados['user']->name);
+                //dd($user->name);
+                //$clientes = Cliente::all();
+                $pdf = FacadePdf::loadView('pdf', compact('usuario', 'arrayDePedidos', 'dataHoraAtual', 'valorTotalCompra'));
+                $pdf->setPaper('a4')->download('invoice.pdf');
+                Mail::to('vnwgithub@gmail.com')->send(new MensagemTesteMail($pdf));
+                //  $user->notify(new notificaUser($user, $pdf));
+            }            
 
             DB::commit();
 
