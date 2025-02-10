@@ -10,17 +10,9 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Payload;
-use App\Http\Requests\PedidoRequest;
 use App\Mail\MensagemTesteMail;
-use App\Models\Cliente;
-use App\Models\User;
-use App\Notifications\notificaUser;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
-use Barryvdh\DomPDF\PDF;
 use Illuminate\Support\Facades\Mail;
-use PhpParser\Node\Stmt\Foreach_;
 
 class PedidoController extends Controller
 {
@@ -38,7 +30,6 @@ class PedidoController extends Controller
         if ($request->has('atributos_cliente')) {
 
             $atributos_cliente = 'cliente:id,' . $request->atributos_cliente;
-            //dd($atributos_cliente);
             $pedidoRepository->selectAtributosRegistrosRelacionados($atributos_cliente);
         } else {
             $pedidoRepository->selectAtributosRegistrosRelacionados('cliente');
@@ -46,7 +37,6 @@ class PedidoController extends Controller
 
         if ($request->has('filtro')) {
             $filtros = $request->filtro;
-            //dd($atributos_cliente);
             $pedidoRepository->filtro($filtros);
         }
 
@@ -94,17 +84,8 @@ class PedidoController extends Controller
         DB::beginTransaction();
         try {
             $dadosRequisitados = $request->all();
-            //dd($dadosRequisitados);
-            //dd($request->cliente_id);
-            //dd($dadosRequisitados['produtos'][1]['quantidade']);
-            //dd($dadosRequisitados['produtos']);
-            //dd($dadosRequisitados);
 
-            //dd($dataFormatada);
             //$this->pedido->data = $dataFormatada;
-            //dump($this->pedido->data);
-            //dd($data);
-            //dd($dadosRequisitados);
 
             if ($request->method() === 'PATCH') {
                 
@@ -117,7 +98,6 @@ class PedidoController extends Controller
                 }
                 $request->validate($regrasDinamicas, $this->pedido->feedbacks());
             } else {                
-                // dump($this->pedido->regras(), $this->pedido->feedbacks());
                 //$validator = Validator::make($request->all(),
                 //$this->pedido->regras());
                 //dd($validator->fails(), $validator->errors()->messages());
@@ -126,33 +106,31 @@ class PedidoController extends Controller
                        
             $pedido = $this->pedido->fill($dadosRequisitados);
            // $pedido->cupom_desconto_id = $dadosRequisitados['upom_desconto_id'];
-            //dd($pedido);
             $pedido->save(); //AQUI NÃO PODE USAR O MÉTODO SAVE(), O MÉTODO SAVE() NÃO ACEITA UM ARRAY COMO PARÂMETRO ($dadosRequisitados é um array, é só dar um dd para conferir), somente o método create aceita um array como parâmetro     
-            //dd($dadosRequisitados);
             $pedidoId = $pedido->id;
-            //dd($pedidoId);
-            $totalProdutos = count($dadosRequisitados['produtos']);
-            
+            $totalProdutos = count($dadosRequisitados['produtos']);            
             
             $arrayDePedidos = [];
-
-
+            $arrayDescricaoProdutos = [];
             //Sintaxe de array, Se $dadosRequisitados for um array, você precisa usar a notação de array para acessar o valor relacionado a "produtos".
             for($i = 0; $i < $totalProdutos; $i++) {
-                //dd($totalProdutos);
+                //dd($dadosRequisitados);
                 $pedidoProduto = new PedidoProduto();
+                //$pedidoProduto->produto_descricao = $dadosRequisitados['produtos'][$i]['descricao'];
                 $pedidoProduto->produto_id = $dadosRequisitados['produtos'][$i]['id'];
                 $pedidoProduto->pedido_id = $pedidoId;
                 $pedidoProduto->preco_unitario = $dadosRequisitados['produtos'][$i]['preco'];
                 $pedidoProduto->quantidade_do_produto = $dadosRequisitados['produtos'][$i]['quantidade'];
                 $pedidoProduto->valor_do_produto = $dadosRequisitados['produtos'][$i]['preco'] * $pedidoProduto->quantidade_do_produto;
                 $pedidoProduto->desconto = (($dadosRequisitados['desconto_porcentagem'] / 100)  * $pedidoProduto->valor_do_produto);
-                $pedidoProduto->valor_total = $pedidoProduto->valor_do_produto - $pedidoProduto->desconto;
-                 
+                $pedidoProduto->valor_total = $pedidoProduto->valor_do_produto - $pedidoProduto->desconto;                 
 
                 $pedidoProduto->save();
 
                 array_push($arrayDePedidos, $pedidoProduto);
+                array_push($arrayDescricaoProdutos, $dadosRequisitados['produtos'][$i]['descricao']);
+
+                //dump($arrayDescricaoProdutos);
                 
                 if (!$pedidoProduto->save()) {
                     dd($pedidoProduto->errors()); 
@@ -176,15 +154,10 @@ class PedidoController extends Controller
                     $produtosDoBanco->estoque -= $pedidoProduto->quantidade_do_produto;
                     $produtosDoBanco->save();
                 }
-            }
-
-            //dd($dadosRequisitados);            
+            }         
 
             //$produtos = Produto::all();
-            //$prod = Produto::find(1);
-            //dd($prod->getAttributes());
-
-            //dd($produtos);      
+            //$prod = Produto::find(1);                
 
             //OUTRA MANEIRA DE FAZER
             /*
@@ -192,7 +165,6 @@ class PedidoController extends Controller
             $pedido->fill($dadosRequisitados); // Preenche os campos com o array recebido.
             $pedido->save(); // Salva no banco de dados.
             */
-            //dd($dadosRequisitados['user']['name']);
             
             // if($dadosRequisitados['user']) {
             //     $user = new User();
@@ -202,30 +174,22 @@ class PedidoController extends Controller
             //     $user->email = $dadosRequisitados['user']['email'];
             //     $user->notify(new notificaUser($user));
             // }      
-            
-            //dd($arrayDePedidos);
 
             if(auth()->user()) {
                 //$user = auth()->user();
                 
                 $usuario = $dadosRequisitados['user']['name'];
                 $dataHoraAtual = Carbon::now()->toDateTimeString();
-                
+                $dataHoraAtualFormatada = Carbon::parse($dataHoraAtual)->format('d/m/Y H:i:s');
+
                 $valorTotalCompra = 0;
 
                 foreach($arrayDePedidos as $key => $value) {
-                    //dd($value);
                     $valorTotalCompra += $value->valor_total; 
                 }
-                
-                //dd($valorTotalCompra);
-                //dd($dataHoraAtual);
-                //dd($user->name);
                 //  $user->email = $dadosRequisitados['user']['email'];
-                //dd($dadosRequisitados['user']->name);
-                //dd($user->name);
-                //$clientes = Cliente::all();
-                $pdf = FacadePdf::loadView('pdf', compact('usuario', 'arrayDePedidos', 'dataHoraAtual', 'valorTotalCompra'));
+               
+                $pdf = FacadePdf::loadView('pdf', compact('usuario', 'arrayDePedidos', 'dataHoraAtualFormatada', 'valorTotalCompra', 'arrayDescricaoProdutos'));
                 $pdf->setPaper('a4')->download('invoice.pdf');
                 Mail::to('vnwgithub@gmail.com')->send(new MensagemTesteMail($pdf));
                 //  $user->notify(new notificaUser($user, $pdf));
@@ -245,12 +209,10 @@ class PedidoController extends Controller
     {
         //subtitui Request $request no parâmetro por $id
         $pedido = $this->pedido->with('cliente', 'produtos')->find($id);
-        //dd($pedido);
 
         if ($pedido === null) {
             return response()->json(['msg' => 'Este Pedido foi excluído com softdeletes!'], 200);
         }
-        //dd($pedido);
 
         return response()->json(['msg' => 'Pedido encontrado com sucesso'], 200);
     }

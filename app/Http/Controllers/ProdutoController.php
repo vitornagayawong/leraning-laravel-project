@@ -48,12 +48,9 @@ class ProdutoController extends Controller
 
         /////////////////////////////////////////////////////////////////////////////////
         //$produtos = Produto::all();
-        //dd($produtos);
         // $produtosFiltrados = $produtos->filter(function($produto) {
         //     return $produto->estoque > 0;
-        // });
-        
-        //dd($produtosFiltrados);
+        // });        
 
         //$produtoRepository->moreThanZero($produtos);
 
@@ -111,7 +108,6 @@ class ProdutoController extends Controller
     {
         $produto = $this->produto->find($id);
         $atributos = $request->all();
-        //dd($atributos);
 
         if(isset($produto)) {
 
@@ -151,7 +147,6 @@ class ProdutoController extends Controller
     {
         //apaguei Produto $produto do parâmetro dessa função
         $produto = $this->produto->find($id);
-        //dd($produto->getAttributes());
         if(isset($produto)) {
             //$produto->forceDelete();
             $produto->delete();

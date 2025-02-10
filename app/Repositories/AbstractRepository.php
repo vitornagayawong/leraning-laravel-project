@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Models\Produto;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class AbstractRepository {
@@ -17,24 +16,41 @@ abstract class AbstractRepository {
     }
 
     public function filtro($filtros) {
-        //$multiplasCondicoes = $request->filtro;
-            //dd($multiplasCondicoes);
-            $filtros = explode(';', $filtros);
-            //dd($condicaoDeMultiplasCondicoes);
-            foreach($filtros as $key => $value) {
-                $condicaoSeparadaDeFato = explode(':', $value);
+        
+        $filtros = explode(';', $filtros);
+        //dd($filtros);
+        $filtroNome = explode(':', $filtros[0]);
 
-                $this->model = $this->model->where(
-                    $condicaoSeparadaDeFato[0], 
-                    $condicaoSeparadaDeFato[1], 
-                    $condicaoSeparadaDeFato[2]
-                );
-            }
-            //dd($condicao);
+        //$filtroDescricao = explode(':', $filtros[1]);
+        //dd($filtroDescricao);
+        //dd($filtroNome);
+
+        $this->model = $this->model->whereRaw("nome LIKE ? OR descricao LIKE ?", ["%$filtroNome[2]%", "%$filtroNome[2]%"] );
+
+
+                        //minha lógica
+                        // ->where('nome', 'like', '%' . $filtroNome[2] . '%')
+                        // ->orWhere('descricao', 'like', '%' . $filtroDescricao[2] . '%');
+
+        // $this->model = $this->model
+        // ->whereRaw("concat(nome, descricao) LIKE ? ",  ["%$filtroNome[2]%"] );
+
+            // foreach($filtros as $key => $value) {
+            //     dump($value);
+            //     $condicaoSeparadaDeFato = explode(':', $value);
+            //     //dump($condicaoSeparadaDeFato);
+
+            //     $this->model = $this->model->where(
+            //         $condicaoSeparadaDeFato[0], 
+            //         $condicaoSeparadaDeFato[1], 
+            //         '%' . $condicaoSeparadaDeFato[2] . '%'
+            //     );
+            // }
             //Eu estava usando "with" aqui, na verdade é "where"!
     }
 
     public function filtroNomeProd($filtros) { //interligado com o front
+        //dd($filtros);
         $filtros = explode(':', $filtros);
         //dd($filtros);
         $filtroNome = explode(' ', $filtros[2]);
@@ -52,8 +68,6 @@ abstract class AbstractRepository {
         // //////////////////////////////
         //     return $item->estoque > 0;
         // });
-        // //dd('aaquiiiiiii');
-        // //dd($this->model);
 
         $this->model = $this->model->where('estoque', '>', 0);
     }
