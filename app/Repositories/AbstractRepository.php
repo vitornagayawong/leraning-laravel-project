@@ -18,15 +18,11 @@ abstract class AbstractRepository {
     public function filtro($filtros) {
         
         $filtros = explode(';', $filtros);
-        //dd($filtros);
         $filtroNome = explode(':', $filtros[0]);
 
         //$filtroDescricao = explode(':', $filtros[1]);
-        //dd($filtroDescricao);
-        //dd($filtroNome);
 
         $this->model = $this->model->whereRaw("nome LIKE ? OR descricao LIKE ?", ["%$filtroNome[2]%", "%$filtroNome[2]%"] );
-
 
                         //minha lógica
                         // ->where('nome', 'like', '%' . $filtroNome[2] . '%')

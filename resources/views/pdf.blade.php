@@ -25,14 +25,25 @@
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
+        .sec {
+            width: 100%;
+        }
+
+        .sec span {
+            display: inline-block;
+            
+        }
+        .span1 {
+            margin-right: 320px;
+        }
     </style>
 </head>
 
 <body>
-    <section>
-        <span>Pedido realizado por:</span> {{ $usuario }}
-        <br>
-        Data: {{$dataHoraAtualFormatada}}
+    <section class="sec">
+        <span class="span1"> Pedido realizado por: {{ $usuario }} </span>         
+        <span> Data: {{$dataHoraAtualFormatada}} </span> 
     </section>
     <br><br>
     <table>

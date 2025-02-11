@@ -174,6 +174,7 @@ class PedidoController extends Controller
             //     $user->email = $dadosRequisitados['user']['email'];
             //     $user->notify(new notificaUser($user));
             // }      
+            DB::commit();
 
             if(auth()->user()) {
                 //$user = auth()->user();
@@ -181,26 +182,26 @@ class PedidoController extends Controller
                 $usuario = $dadosRequisitados['user']['name'];
                 $dataHoraAtual = Carbon::now()->toDateTimeString();
                 $dataHoraAtualFormatada = Carbon::parse($dataHoraAtual)->format('d/m/Y H:i:s');
-
+                
                 $valorTotalCompra = 0;
-
+                
                 foreach($arrayDePedidos as $key => $value) {
                     $valorTotalCompra += $value->valor_total; 
                 }
                 //  $user->email = $dadosRequisitados['user']['email'];
-               
+                
                 $pdf = FacadePdf::loadView('pdf', compact('usuario', 'arrayDePedidos', 'dataHoraAtualFormatada', 'valorTotalCompra', 'arrayDescricaoProdutos'));
                 $pdf->setPaper('a4')->download('invoice.pdf');
                 Mail::to('vnwgithub@gmail.com')->send(new MensagemTesteMail($pdf));
                 //  $user->notify(new notificaUser($user, $pdf));
+                //dd('aqui');
             }            
 
-            DB::commit();
 
             return response()->json($pedido, 201);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json($e);
+            return response()->json($e->getMessage(), 500);
         }
     }
 
